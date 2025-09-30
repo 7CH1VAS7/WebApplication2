@@ -1,0 +1,120 @@
+﻿@using Models
+@model IEnumerable<Defect>
+
+@{
+    ViewData["Title"] = "Отчет по дефектам";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Всего дефектов</h5>
+                <h2 class="card-text">@ViewBag.TotalDefects</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-secondary">
+            <div class="card-body">
+                <h5 class="card-title">Новые</h5>
+                <h2 class="card-text">@ViewBag.NewDefects</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">В работе</h5>
+                <h2 class="card-text">@ViewBag.InProgressDefects</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Закрыто</h5>
+                <h2 class="card-text">@ViewBag.ClosedDefects</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mb-3">
+    <a href="@Url.Action("DefectsReport", new { exportType = "csv" })" class="btn btn-outline-success">Экспорт в CSV</a>
+    <a href="@Url.Action("DefectsReport", new { exportType = "excel" })" class="btn btn-outline-primary">Экспорт в Excel</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Заголовок</th>
+                <th>Проект</th>
+                <th>Статус</th>
+                <th>Приоритет</th>
+                <th>Исполнитель</th>
+                <th>Создатель</th>
+                <th>Дата создания</th>
+                <th>Срок</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Title</td>
+                    <td>@item.Project?.Name</td>
+                    <td>
+                        <span class="badge @GetStatusBadgeClass(item.Status)">
+                            @item.Status
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge @GetPriorityBadgeClass(item.Priority)">
+                            @item.Priority
+                        </span>
+                    </td>
+                    <td>@item.Assignee?.UserName</td>
+                    <td>@item.Creator?.UserName</td>
+                    <td>@item.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    <td>@(item.DueDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <a asp-action="Index" class="btn btn-secondary">Назад к отчетам</a>
+</div>
+
+@functions {
+    public string GetStatusBadgeClass(DefectStatus status)
+    {
+        return status switch
+        {
+            DefectStatus.New => "bg-secondary",
+            DefectStatus.InProgress => "bg-primary",
+            DefectStatus.OnReview => "bg-warning",
+            DefectStatus.Closed => "bg-success",
+            DefectStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    public string GetPriorityBadgeClass(DefectPriority priority)
+    {
+        return priority switch
+        {
+            DefectPriority.Low => "bg-success",
+            DefectPriority.Medium => "bg-warning",
+            DefectPriority.High => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

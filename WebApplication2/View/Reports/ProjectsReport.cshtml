@@ -1,0 +1,83 @@
+﻿@using WebApplication2.Controllers
+@model IEnumerable<ProjectReportViewModel>
+
+@{
+    ViewData["Title"] = "Отчет по проектам";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Проект</th>
+                <th>Всего дефектов</th>
+                <th>Новые</th>
+                <th>В работе</th>
+                <th>Закрыто</th>
+                <th>Просрочено</th>
+                <th>Процент завершения</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var completionPercent = item.TotalDefects > 0 ?
+                (item.ClosedDefects * 100.0 / item.TotalDefects) : 0;
+
+                <tr>
+                    <td>@item.Project.Name</td>
+                    <td>@item.TotalDefects</td>
+                    <td>
+                        <span class="badge bg-secondary">@item.NewDefects</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary">@item.InProgressDefects</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-success">@item.ClosedDefects</span>
+                    </td>
+                    <td>
+                        @if (item.OverdueDefects > 0)
+                        {
+                            <span class="badge bg-danger">@item.OverdueDefects</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">0</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar @GetProgressBarClass(completionPercent)"
+                                 role="progressbar"
+                                 style="width: @completionPercent%;"
+                                 aria-valuenow="@completionPercent"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                @completionPercent.ToString("F1")%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <a asp-action="Index" class="btn btn-secondary">Назад к отчетам</a>
+</div>
+
+@functions {
+    public string GetProgressBarClass(double percent)
+    {
+        return percent switch
+        {
+            >= 80 => "bg-success",
+            >= 50 => "bg-warning",
+            _ => "bg-danger"
+        };
+    }
+}

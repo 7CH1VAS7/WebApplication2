@@ -1,0 +1,125 @@
+﻿@using WebApplication2.Controllers
+@model StatisticsViewModel
+
+@{
+    ViewData["Title"] = "Общая статистика";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body text-center">
+                <h5 class="card-title">Проектов</h5>
+                <h2 class="card-text">@Model.TotalProjects</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title">Дефектов</h5>
+                <h2 class="card-text">@Model.TotalDefects</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body text-center">
+                <h5 class="card-title">Среднее время решения</h5>
+                <h2 class="card-text">
+                    @if (Model.AverageResolutionTime.HasValue)
+                    {
+                        @Model.AverageResolutionTime.Value.Days <small>дней</small>
+                    }
+                    else
+                    {
+                        <small>Нет данных</small>
+                    }
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body text-center">
+                <h5 class="card-title">Закрыто дефектов</h5>
+                <h2 class="card-text">
+                    @(Model.DefectsByStatus.ContainsKey(DefectStatus.Closed) ? Model.DefectsByStatus[DefectStatus.Closed] : 0)
+                </h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Дефекты по статусам</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Дефекты по приоритетам</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="priorityChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary">Назад к отчетам</a>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart for status distribution
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Новые', 'В работе', 'На проверке', 'Закрыты', 'Отменены'],
+                datasets: [{
+                    data: [
+                        @(Model.DefectsByStatus.ContainsKey(DefectStatus.New) ? Model.DefectsByStatus[DefectStatus.New] : 0),
+                        @(Model.DefectsByStatus.ContainsKey(DefectStatus.InProgress) ? Model.DefectsByStatus[DefectStatus.InProgress] : 0),
+                        @(Model.DefectsByStatus.ContainsKey(DefectStatus.OnReview) ? Model.DefectsByStatus[DefectStatus.OnReview] : 0),
+                        @(Model.DefectsByStatus.ContainsKey(DefectStatus.Closed) ? Model.DefectsByStatus[DefectStatus.Closed] : 0),
+                        @(Model.DefectsByStatus.ContainsKey(DefectStatus.Cancelled) ? Model.DefectsByStatus[DefectStatus.Cancelled] : 0)
+                    ],
+                    backgroundColor: [
+                        '#6c757d', '#007bff', '#ffc107', '#28a745', '#dc3545'
+                    ]
+                }]
+            }
+        });
+
+        // Chart for priority distribution
+        const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+        const priorityChart = new Chart(priorityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Низкий', 'Средний', 'Высокий'],
+                datasets: [{
+                    label: 'Количество дефектов',
+                    data: [
+                        @(Model.DefectsByPriority.ContainsKey(DefectPriority.Low) ? Model.DefectsByPriority[DefectPriority.Low] : 0),
+                        @(Model.DefectsByPriority.ContainsKey(DefectPriority.Medium) ? Model.DefectsByPriority[DefectPriority.Medium] : 0),
+                        @(Model.DefectsByPriority.ContainsKey(DefectPriority.High) ? Model.DefectsByPriority[DefectPriority.High] : 0)
+                    ],
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                }]
+            }
+        });
+    </script>
+}
