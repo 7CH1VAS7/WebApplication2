@@ -1,0 +1,154 @@
+﻿@using Models
+@model Defect
+
+@{
+    ViewData["Title"] = "Детали дефекта";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">@Model.Title</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Проект:</strong> @Model.Project?.Name
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Статус:</strong>
+                        <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Приоритет:</strong>
+                        <span class="badge @GetPriorityBadgeClass(Model.Priority)">@Model.Priority</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Срок:</strong> @(Model.DueDate?.ToShortDateString() ?? "-")
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Создатель:</strong> @Model.Creator?.UserName
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Исполнитель:</strong> @(Model.Assignee?.UserName ?? "Не назначен")
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <strong>Описание:</strong>
+                    <p class="mt-2">@(Model.Description ?? "Нет описания")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Комментарии -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Комментарии</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                {
+                    <div class="mb-3 p-3 border rounded">
+                        <div class="d-flex justify-content-between">
+                            <strong>@comment.Author?.UserName</strong>
+                            <small class="text-muted">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                        </div>
+                        <p class="mb-0 mt-2">@comment.Text</p>
+                    </div>
+                }
+
+                <!-- Форма добавления комментария -->
+                <form asp-action="AddComment" method="post" class="mt-4">
+                    <input type="hidden" name="defectId" value="@Model.Id" />
+                    <div class="form-group">
+                        <label for="commentText">Новый комментарий:</label>
+                        <textarea name="commentText" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Добавить комментарий</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Управление статусом -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Управление статусом</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="ChangeStatus" method="post">
+                    <input type="hidden" name="defectId" value="@Model.Id" />
+                    <div class="form-group mb-3">
+                        <select name="newStatus" class="form-control" asp-items="Html.GetEnumSelectList<DefectStatus>()"></select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Изменить статус</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Вложения -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Вложения</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Attachments.Any())
+                {
+                    foreach (var attachment in Model.Attachments)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small>@attachment.OriginalFileName</small>
+                            <a href="~/@attachment.FilePath" download class="btn btn-sm btn-outline-primary">Скачать</a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">Нет вложений</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index" class="btn btn-secondary">Назад к списку</a>
+    @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Engineer"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Редактировать</a>
+    }
+</div>
+
+@functions {
+    public string GetStatusBadgeClass(DefectStatus status)
+    {
+        return status switch
+        {
+            DefectStatus.New => "bg-secondary",
+            DefectStatus.InProgress => "bg-primary",
+            DefectStatus.OnReview => "bg-warning",
+            DefectStatus.Closed => "bg-success",
+            DefectStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    public string GetPriorityBadgeClass(DefectPriority priority)
+    {
+        return priority switch
+        {
+            DefectPriority.Low => "bg-success",
+            DefectPriority.Medium => "bg-warning",
+            DefectPriority.High => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

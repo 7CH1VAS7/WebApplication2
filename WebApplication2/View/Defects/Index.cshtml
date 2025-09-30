@@ -1,0 +1,113 @@
+﻿@using Models
+@model IEnumerable<Defect>
+
+@{
+    ViewData["Title"] = "Дефекты";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control" placeholder="Поиск..." value="@Context.Request.Query["search"]" />
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-control" asp-items="Html.GetEnumSelectList<DefectStatus>()">
+                    <option value="">Все статусы</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="priority" class="form-control" asp-items="Html.GetEnumSelectList<DefectPriority>()">
+                    <option value="">Все приоритеты</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="projectId" class="form-control" asp-items="@(new SelectList(ViewData["Projects"] as List<Project>, "Id", "Name"))">
+                    <option value="">Все проекты</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Фильтр</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Engineer"))
+{
+    <p>
+        <a asp-action="Create" class="btn btn-success">Создать дефект</a>
+    </p>
+}
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Заголовок</th>
+                <th>Проект</th>
+                <th>Статус</th>
+                <th>Приоритет</th>
+                <th>Исполнитель</th>
+                <th>Срок</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.Project?.Name</td>
+                    <td>
+                        <span class="badge @GetStatusBadgeClass(item.Status)">
+                            @item.Status
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge @GetPriorityBadgeClass(item.Priority)">
+                            @item.Priority
+                        </span>
+                    </td>
+                    <td>@item.Assignee?.UserName</td>
+                    <td>@(item.DueDate?.ToShortDateString() ?? "-")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Подробности</a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Engineer"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Редактировать</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@functions {
+    public string GetStatusBadgeClass(DefectStatus status)
+    {
+        return status switch
+        {
+            DefectStatus.New => "bg-secondary",
+            DefectStatus.InProgress => "bg-primary",
+            DefectStatus.OnReview => "bg-warning",
+            DefectStatus.Closed => "bg-success",
+            DefectStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    public string GetPriorityBadgeClass(DefectPriority priority)
+    {
+        return priority switch
+        {
+            DefectPriority.Low => "bg-success",
+            DefectPriority.Medium => "bg-warning",
+            DefectPriority.High => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
