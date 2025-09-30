@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Отчеты и аналитика";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Отчет по дефектам</h5>
+                <p class="card-text">Детальный отчет по всем дефектам с возможностью экспорта</p>
+                <a href="@Url.Action("DefectsReport")" class="btn btn-primary">Перейти</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Отчет по проектам</h5>
+                <p class="card-text">Статистика дефектов по проектам и аналитика выполнения</p>
+                <a href="@Url.Action("ProjectsReport")" class="btn btn-primary">Перейти</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Общая статистика</h5>
+                <p class="card-text">Графики и аналитика по всем проектам и дефектам</p>
+                <a href="@Url.Action("Statistics")" class="btn btn-primary">Перейти</a>
+            </div>
+        </div>
+    </div>
+</div>
