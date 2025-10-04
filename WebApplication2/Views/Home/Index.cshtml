@@ -1,0 +1,50 @@
+﻿@{
+    ViewData["Title"] = "Система управления дефектами";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Добро пожаловать!</h1>
+    <p class="lead">Система управления дефектами на строительных объектах</p>
+
+    <div class="row mt-5">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Для начала работы</h5>
+                    <p class="card-text">Войдите в систему или зарегистрируйтесь</p>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Login">Войти</a>
+                        <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Account/Register">Зарегистрироваться</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">📋 Управление проектами</h5>
+                    <p class="card-text">Создавайте и управляйте строительными проектами</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">🔧 Контроль дефектов</h5>
+                    <p class="card-text">Отслеживайте дефекты от создания до устранения</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Аналитика и отчеты</h5>
+                    <p class="card-text">Получайте аналитику и формируйте отчеты</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

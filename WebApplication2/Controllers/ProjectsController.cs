@@ -18,7 +18,10 @@ namespace WebApplication2.Controllers
         // GET: Projects
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Projects.ToListAsync());
+            var projects = await _context.Projects
+                .Include(p => p.Defects) // ← ДОБАВЬТЕ ЭТУ СТРОКУ
+                .ToListAsync();
+            return View(projects);
         }
 
         // GET: Projects/Details/5
@@ -30,7 +33,8 @@ namespace WebApplication2.Controllers
             }
 
             var project = await _context.Projects
-                .Include(p => p.Defects)
+                .Include(p => p.Defects) // ← ДОБАВЬТЕ ЭТУ СТРОКУ
+                    .ThenInclude(d => d.Assignee) // ← И ЭТУ (опционально)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (project == null)

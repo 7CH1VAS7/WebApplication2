@@ -1,0 +1,195 @@
+﻿@using Models
+@using WebApplication2.Controllers
+@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "Дашборд";
+}
+
+<h1 class="mb-4">Обзор системы</h1>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Проекты</h5>
+                        <h2 class="card-text">@Model.TotalProjects</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-folder fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Всего дефектов</h5>
+                        <h2 class="card-text">@Model.TotalDefects</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-bug fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Открытые дефекты</h5>
+                        <h2 class="card-text">@Model.OpenDefects</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Последние дефекты</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentDefects.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Заголовок</th>
+                                    <th>Проект</th>
+                                    <th>Статус</th>
+                                    <th>Приоритет</th>
+                                    <th>Дата создания</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var defect in Model.RecentDefects)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="Defects" asp-action="Details" asp-route-id="@defect.Id">
+                                                @defect.Title
+                                            </a>
+                                        </td>
+                                        <td>@defect.Project?.Name</td>
+                                        <td>
+                                            <span class="badge @GetStatusBadgeClass(defect.Status)">
+                                                @defect.Status
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge @GetPriorityBadgeClass(defect.Priority)">
+                                                @defect.Priority
+                                            </span>
+                                        </td>
+                                        <td>@defect.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">Нет дефектов для отображения</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Быстрые действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Engineer"))
+                    {
+                        <a asp-controller="Defects" asp-action="Create" class="btn btn-primary">Создать дефект</a>
+                    }
+                    <a asp-controller="Defects" asp-action="Index" class="btn btn-outline-primary">Все дефекты</a>
+                    <a asp-controller="Projects" asp-action="Index" class="btn btn-outline-secondary">Все проекты</a>
+
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                    {
+                        <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-success">Отчеты</a>
+                    }
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-controller="Account" asp-action="Users" class="btn btn-outline-dark">Пользователи</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Статусы дефектов</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <span class="badge bg-secondary">Новые</span>
+                    <small class="text-muted"> - только что созданные</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-primary">В работе</span>
+                    <small class="text-muted"> - назначены исполнителю</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-warning">На проверке</span>
+                    <small class="text-muted"> - ожидают проверки</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-success">Закрыты</span>
+                    <small class="text-muted"> - успешно завершены</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-danger">Отменены</span>
+                    <small class="text-muted"> - отменены по причине</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetStatusBadgeClass(DefectStatus status)
+    {
+        return status switch
+        {
+            DefectStatus.New => "bg-secondary",
+            DefectStatus.InProgress => "bg-primary",
+            DefectStatus.OnReview => "bg-warning",
+            DefectStatus.Closed => "bg-success",
+            DefectStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    public string GetPriorityBadgeClass(DefectPriority priority)
+    {
+        return priority switch
+        {
+            DefectPriority.Low => "bg-success",
+            DefectPriority.Medium => "bg-warning",
+            DefectPriority.High => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

@@ -7,13 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="View\Projects\index.cshtml" />
-    <Content Remove="View\Shared\_header.cshtml" />
+    <Content Remove="Views\Projects\index.cshtml" />
+    <Content Remove="Views\Shared\_header.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="View\Projects\index.cshtml" />
-    <Compile Include="View\Shared\_header.cshtml" />
+    <Compile Include="Views\Projects\index.cshtml" />
+    <Compile Include="Views\Shared\_header.cshtml" />
   </ItemGroup>
 
   <ItemGroup>

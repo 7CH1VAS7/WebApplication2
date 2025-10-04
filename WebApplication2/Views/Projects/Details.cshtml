@@ -1,0 +1,199 @@
+﻿@using Models
+@model Project
+
+@{
+    ViewData["Title"] = "Детали проекта";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Название:</dt>
+                    <dd class="col-sm-9">@Model.Name</dd>
+
+                    <dt class="col-sm-3">Описание:</dt>
+                    <dd class="col-sm-9">@(Model.Description ?? "—")</dd>
+
+                    <dt class="col-sm-3">Дата начала:</dt>
+                    <dd class="col-sm-9">@Model.StartDate.ToString("dd.MM.yyyy")</dd>
+
+                    <dt class="col-sm-3">Дата окончания:</dt>
+                    <dd class="col-sm-9">@(Model.EndDate?.ToString("dd.MM.yyyy") ?? "—")</dd>
+
+                    <dt class="col-sm-3">Всего дефектов:</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-primary">@Model.Defects.Count</span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Статистика дефектов</h5>
+            </div>
+            <div class="card-body">
+                @{
+                    var newDefects = Model.Defects.Count(d => d.Status == DefectStatus.New);
+                    var inProgressDefects = Model.Defects.Count(d => d.Status == DefectStatus.InProgress);
+                    var closedDefects = Model.Defects.Count(d => d.Status == DefectStatus.Closed);
+                }
+
+                <div class="mb-2">
+                    <span class="badge bg-secondary">Новые: @newDefects</span>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-primary">В работе: @inProgressDefects</span>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-success">Закрыто: @closedDefects</span>
+                </div>
+
+                @if (Model.Defects.Any())
+                {
+                    var completionPercent = (closedDefects * 100.0) / Model.Defects.Count;
+                    <div class="mt-3">
+                        <small class="text-muted">Процент завершения:</small>
+                        <div class="progress mt-1">
+                            <div class="progress-bar @GetProgressBarClass(completionPercent)"
+                                 style="width: @completionPercent%;">
+                                @completionPercent.ToString("F1")%
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <a asp-controller="Defects" asp-action="Create" asp-route-projectId="@Model.Id"
+                   class="btn btn-success btn-sm">
+                    <i class="fas fa-plus"></i> Добавить дефект
+                </a>
+                <a asp-controller="Defects" asp-action="Index" asp-route-projectId="@Model.Id"
+                   class="btn btn-outline-primary btn-sm mt-1">
+                    <i class="fas fa-list"></i> Все дефекты проекта
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Defects.Any())
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Дефекты проекта</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Заголовок</th>
+                            <th>Статус</th>
+                            <th>Приоритет</th>
+                            <th>Исполнитель</th>
+                            <th>Срок</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var defect in Model.Defects.OrderByDescending(d => d.CreatedAt).Take(10))
+                        {
+                            <tr>
+                                <td>@defect.Title</td>
+                                <td>
+                                    <span class="badge @GetStatusBadgeClass(defect.Status)">
+                                        @defect.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge @GetPriorityBadgeClass(defect.Priority)">
+                                        @defect.Priority
+                                    </span>
+                                </td>
+                                <td>@(defect.Assignee?.UserName ?? "—")</td>
+                                <td>@(defect.DueDate?.ToString("dd.MM.yyyy") ?? "—")</td>
+                                <td>
+                                    <a asp-controller="Defects" asp-action="Details" asp-route-id="@defect.Id"
+                                       class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.Defects.Count > 10)
+            {
+                <div class="text-center mt-2">
+                    <a asp-controller="Defects" asp-action="Index" asp-route-projectId="@Model.Id"
+                       class="btn btn-outline-primary btn-sm">
+                        Показать все дефекты (@Model.Defects.Count)
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Назад к списку
+    </a>
+    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Редактировать
+        </a>
+    }
+</div>
+
+@functions {
+    public string GetProgressBarClass(double percent)
+    {
+        return percent switch
+        {
+            >= 80 => "bg-success",
+            >= 50 => "bg-warning",
+            _ => "bg-danger"
+        };
+    }
+
+    public string GetStatusBadgeClass(DefectStatus status)
+    {
+        return status switch
+        {
+            DefectStatus.New => "bg-secondary",
+            DefectStatus.InProgress => "bg-primary",
+            DefectStatus.OnReview => "bg-warning",
+            DefectStatus.Closed => "bg-success",
+            DefectStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    public string GetPriorityBadgeClass(DefectPriority priority)
+    {
+        return priority switch
+        {
+            DefectPriority.Low => "bg-success",
+            DefectPriority.Medium => "bg-warning",
+            DefectPriority.High => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
